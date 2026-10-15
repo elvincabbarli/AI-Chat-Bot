@@ -1,0 +1,65 @@
+
+
+
+
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+
+model User {
+  id            String         @id
+  email         String         @unique
+  createdAt     DateTime       @default(now())
+  conversations Conversation[]
+}
+
+
+model Conversation {
+  id        String    @id @default(uuid())
+  title     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+}
+
+
+model Message {
+  id             String       @id @default(uuid())
+  role           MessageRole
+  content        String
+  createdAt      DateTime     @default(now())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  usage          UsageLog?
+  
+  
+  rating         Int?
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+
+
+model UsageLog {
+  id               String   @id @default(uuid())
+  messageId        String   @unique
+  message          Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  promptTokens     Int
+  completionTokens Int
+  createdAt        DateTime @default(now())
+}
